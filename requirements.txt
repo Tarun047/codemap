@@ -1,0 +1,7 @@
+langchain
+langchain-chroma
+langchain-huggingface
+langchain-community
+langchain-huggingface
+transformers
+accelerate
