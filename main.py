@@ -1,17 +1,16 @@
 import asyncio
-from langchain_community.document_loaders.generic import GenericLoader
-from langchain_community.document_loaders.parsers import LanguageParser
-from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.chat_models import ChatOllama
-from langchain_huggingface.llms import HuggingFacePipeline
+
+import chromadb
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain_chroma import Chroma
+from langchain_community.chat_models import ChatOllama
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers import LanguageParser
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-import chromadb
+from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 
 REPO_PATH = "/Users/tarun/RiderProjects/SemPhie/SemPhie.Chat.Cli"
 
@@ -40,7 +39,7 @@ async def main():
 
     retriever = chroma.as_retriever()
 
-    llm = ChatOllama(model="phi3")
+    llm = ChatOllama(model="codellama")
 
     # First we need a prompt that we can pass into an LLM to generate this search query
 

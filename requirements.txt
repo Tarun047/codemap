@@ -1,7 +1,10 @@
-langchain
+langchain~=0.2.12
 langchain-chroma
 langchain-huggingface
-langchain-community
+langchain-community~=0.2.11
 langchain-huggingface
 transformers
 accelerate
+chromadb~=0.5.5
+langchain-core~=0.2.29
+langchain-text-splitters~=0.2.2
