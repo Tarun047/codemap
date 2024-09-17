@@ -12,7 +12,7 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 
-REPO_PATH = "/Users/tarun/RiderProjects/SemPhie/SemPhie.Chat.Cli"
+REPO_PATH = "CsharpRepo"
 
 
 async def main():
