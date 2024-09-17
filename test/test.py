@@ -1,10 +1,11 @@
 from src.indexers.base import BaseIndexer
+from pathlib import Path
 
 class SampleIndexer(BaseIndexer):
     def glob_pattern(self) -> str:
         return "**/*.py"
     
-    def index_one(self, file_path: str) -> None:
+    def index_one(self, file_path: Path) -> None:
         self.logger.info(file_path)
         # Extract all info
         # Filter whats needed - # /* */
