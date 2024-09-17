@@ -1,10 +1,11 @@
-langchain~=0.2.12
+langchain
 langchain-chroma
 langchain-huggingface
-langchain-community~=0.2.11
-langchain-huggingface
+langchain-community
 transformers
 accelerate
-chromadb~=0.5.5
-langchain-core~=0.2.29
-langchain-text-splitters~=0.2.2
+chromadb
+langchain-core
+langchain-text-splitters
+requirements-parser
+neo4j

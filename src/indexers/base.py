@@ -16,7 +16,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
             max_threads: int
         ):
         super().__init__()
-        self.repo_path = Path(repo_path)
+        self.repo_path = Path(repo_path).resolve()
         self.batch_size = batch_size
         self.max_threads = max_threads
     

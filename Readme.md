@@ -27,8 +27,19 @@ Interact with your codebase as if it was another human.
 
 4. Install the requirements to the newly added virtual environment using `pip install -r requirements.txt`
 
-4. Run the `chromadb` docker image locally on your machine using `podman run -d -p 8000:8000 chromadb/chroma `
+5. Run the `chromadb` docker image locally on your machine using `podman run -d -p 8000:8000 chromadb/chroma `
 
-5. Then launch the app using `python main.py`
+6. Run the `neo4j` docker image locally on your machine using 
+```bash
+    podman run -d \
+    --name neo4j \
+    -p 7474:7474 -p 7687:7687 \
+    -d \
+    -e NEO4J_AUTH=neo4j/develop123 \
+    -e NEO4J_PLUGINS=\[\"apoc\"\]  \
+    neo4j:latest   
+```
+
+7. Then launch the app using `python test/main.py`
 
 
