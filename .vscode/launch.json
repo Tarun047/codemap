@@ -13,6 +13,16 @@
             "env": {
                 "PYTHONPATH" : "${workspaceFolder}"
             }
+        },
+        {
+            "name": "Python Debug Python Dependency Indexer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/test_graph.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH" : "${workspaceFolder}"
+            }
         }
     ]
 }
