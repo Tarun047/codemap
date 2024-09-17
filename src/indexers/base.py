@@ -33,7 +33,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
     
     
     @abstractmethod
-    def index_one(self, file_path: str) -> None:
+    def index_one(self, file_path: Path) -> None:
         """
         inputs:
             file_path: Takes the absolute path to a given file.
@@ -43,7 +43,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
         raise NotImplementedError()
     
 
-    def index_few(self, file_paths: List[str]) -> None:
+    def index_few(self, file_paths: List[Path]) -> None:
         for file_path in file_paths:
             try:
                 self.index_one(file_path)

@@ -6,6 +6,10 @@ class SampleIndexer(BaseIndexer):
     
     def index_one(self, file_path: str) -> None:
         self.logger.info(file_path)
+        # Extract all info
+        # Filter whats needed - # /* */
+        # Tokenize / Vectorize
+        # Save it to vector DB / graph DB
 
 
 indexer = SampleIndexer(
