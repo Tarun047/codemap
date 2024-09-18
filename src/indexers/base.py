@@ -17,7 +17,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
         self, repo_path: str, batch_size: int, max_threads: int, vector_db: Chroma
     ):
         super().__init__()
-        self.repo_path = Path(repo_path)
+        self.repo_path = Path(repo_path).resolve()
         self.batch_size = batch_size
         self.max_threads = max_threads
         self.vector_db = vector_db
@@ -33,7 +33,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
         raise NotImplementedError()
 
     @abstractmethod
-    async def index_one(self, file_path: str) -> None:
+    async def index_one(self, file_path: Path) -> None:
         """
         inputs:
             file_path: Takes the absolute path to a given file.
@@ -42,7 +42,7 @@ class BaseIndexer(ABC, BaseLoggerMixin):
         """
         raise NotImplementedError()
 
-    async def index_few(self, file_paths: List[str]) -> None:
+    async def index_few(self, file_paths: List[Path]) -> None:
         for file_path in file_paths:
             try:
                 await self.index_one(file_path)

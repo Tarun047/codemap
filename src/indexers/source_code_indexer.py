@@ -4,16 +4,17 @@ from typing import List
 from langchain_community.document_loaders.generic import GenericLoader
 from langchain_community.document_loaders.parsers import LanguageParser
 from itertools import chain
+from pathlib import Path
 
 
 class SourceCodeIndexer(BaseIndexer):
     def glob_pattern(self) -> str:
         return "**/*.cs"
 
-    async def index_one(self, file_path: str) -> None:
+    async def index_one(self, file_path: Path) -> None:
         return super().index_one(file_path)
 
-    async def index_few(self, file_paths: List[str]) -> None:
+    async def index_few(self, file_paths: List[Path]) -> None:
         loaders = [
             GenericLoader.from_filesystem(
                 file_path,
