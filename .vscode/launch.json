@@ -15,6 +15,16 @@
             }
         },
         {
+            "name": "Source Code Indexer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/test_code_indexer.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH" : "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Python Debug Python Dependency Indexer",
             "type": "debugpy",
             "request": "launch",

@@ -1,44 +1,37 @@
 import asyncio
-
+from src.indexers.source_code_indexer import SourceCodeIndexer
 import chromadb
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain_chroma import Chroma
 from langchain_community.chat_models import ChatOllama
-from langchain_community.document_loaders.generic import GenericLoader
-from langchain_community.document_loaders.parsers import LanguageParser
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 
-REPO_PATH = "CsharpRepo"
+REPO_PATH = "Q:/codemap/CsharpRepo/"
 
 
 async def main():
-    loader = GenericLoader.from_filesystem(
-        REPO_PATH,
-        glob="**/*",
-        suffixes=[".cs", ".csproj"],
-        parser=LanguageParser(language="csharp", parser_threshold=500)
-    )
-
-    documents = await loader.aload()
-
-    code_splitter = RecursiveCharacterTextSplitter.from_language(
-        language=Language.CSHARP,
-        chunk_size=2000,
-        chunk_overlap=200
-    )
-    snippets = code_splitter.split_documents(documents)
-
+    # create vector db
     client = chromadb.HttpClient("localhost", port=8000)
-    chroma = Chroma(client=client,
-                    embedding_function=OllamaEmbeddings(model='unclemusclez/jina-embeddings-v2-base-code'))
-    await chroma.aadd_documents(snippets)
+    vector_db = Chroma(
+        client=client,
+        embedding_function=OllamaEmbeddings(
+            model="unclemusclez/jina-embeddings-v2-base-code"
+        ),
+    )
+    # index the source code and add it to vector db
+    indexer = SourceCodeIndexer(
+        repo_path=REPO_PATH, batch_size=10, max_threads=10, vector_db=vector_db
+    )
 
-    retriever = chroma.as_retriever()
+    await indexer.run()
 
+    # retrieval
+    retriever = vector_db.as_retriever()
+
+    # augment and generate
     llm = ChatOllama(model="codellama")
 
     # First we need a prompt that we can pass into an LLM to generate this search query
@@ -75,5 +68,5 @@ async def main():
     print(result["answer"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())
