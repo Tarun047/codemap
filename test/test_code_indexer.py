@@ -9,8 +9,7 @@ from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 
-REPO_PATH = "Q:/codemap/CsharpRepo/"
-
+REPO_PATH = "Q:\src\Substrate\sources\dev\Hygiene\src\Common\Antispam\Core\Optics\TypePartitioned"
 
 async def main():
     # create vector db
@@ -63,10 +62,10 @@ async def main():
 
     qa = create_retrieval_chain(retriever_chain, document_chain)
 
-    question = "What is the Main class in Semphie namespace trying to do?"
-    result = qa.invoke({"input": question})
-    print(result["answer"])
-
+    for i in range(10):
+        question = input("Enter prompt:")
+        result = qa.invoke({"input": question})
+        print(result["answer"])
 
 if __name__ == "__main__":
     asyncio.run(main())
