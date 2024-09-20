@@ -29,7 +29,5 @@ class SourceCodeIndexer(BaseIndexer):
             language=Language.CSHARP, chunk_size=2000, chunk_overlap=200
         )
         snippets = code_splitter.split_documents(list(chain(*documents)))
-        self.logger.info("Snippets:")
-        for snippet in snippets:
-            self.logger.info(snippet)
+        self.logger.info("Adding code snippets to vector db")
         await self.vector_db.aadd_documents(snippets)
