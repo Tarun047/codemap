@@ -82,7 +82,7 @@ class ChatContext:
 
     @property
     def retriever(self):
-        return self.vector_db.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 4})
+        return self.vector_db.as_retriever()
 
     @property
     def retriever_chain(self):
@@ -100,6 +100,17 @@ class ChatContext:
     def qa_chain(self):
         return create_retrieval_chain(self.retriever_chain, self.document_chain)
 
+    def get_response(self, query):
+        return self.qa_chain.stream({
+            "chat_history": st.session_state.chat_history,
+            "input": query
+        })
+
+    def stream_data(self, response):
+        for chunk in response:
+            if "answer" in chunk:
+                yield chunk["answer"]
+
     async def run(self):
         """
         Entry point of the chat application
@@ -108,32 +119,33 @@ class ChatContext:
         repo_path = st.text_input(label="Please enter the local path to your codebase: ")
         if len(repo_path) == 0:
             return
-        if repo_path in self.indexed_repos:
+        if repo_path not in self.indexed_repos:
             await self.index(repo_path)
             self.indexed_repos.add(repo_path)
+        # session state
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = [
-                AIMessage(content="I am a bot, how can I help you?")
+                AIMessage(content="Hello, I am a bot. How can I help you?"),
             ]
-            # create conversation chain
 
-        user_input = st.chat_input("Type your message here...")
-        if user_input is not None and user_input.strip() != "":
-            response = self.qa_chain.invoke({
-                "chat_history": st.session_state.chat_history,
-                "input": user_input
-            })["answer"]
-
-            st.session_state.chat_history.append(HumanMessage(content=user_input))
-            st.session_state.chat_history.append(AIMessage(content=response))
-
+        # conversation
         for message in st.session_state.chat_history:
             if isinstance(message, AIMessage):
                 with st.chat_message("AI"):
                     st.write(message.content)
-            else:
+            elif isinstance(message, HumanMessage):
                 with st.chat_message("Human"):
                     st.write(message.content)
+
+        # user input
+        user_query = st.chat_input("Type your message here...")
+        if user_query is not None and user_query != "":
+            st.session_state.chat_history.append(HumanMessage(content=user_query))
+            with st.chat_message("Human"):
+                st.markdown(user_query)
+            with st.chat_message("AI"):
+                response = st.write_stream(self.stream_data(self.get_response(user_query)))
+            st.session_state.chat_history.append(AIMessage(content=response))
 
     @staticmethod
     def get_instance():
