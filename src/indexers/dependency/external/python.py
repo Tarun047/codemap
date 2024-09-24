@@ -1,20 +1,22 @@
+from langchain_chroma import Chroma
+
 from src.indexers.base import BaseIndexer
 from pathlib import Path
 from src.database.graph.models import Graph
 from src.database.graph.core import GraphDatabase
-from os import sep
 import requirements
 
 
 class PythonExternalDependencyIndexer(BaseIndexer):
-    def __init__(self, repo_path: str, graph_db: GraphDatabase, batch_size: int, max_threads: int):
-        super().__init__(repo_path, batch_size, max_threads)
+    def __init__(self, repo_path: str, batch_size: int, max_threads: int, vector_db: Chroma, graph_db: GraphDatabase):
+        super().__init__(repo_path, batch_size, max_threads, vector_db)
         self.graph_db = graph_db
 
     def glob_pattern(self) -> str:
         return '**/requirements.txt'
 
     def index_one(self, file_path: Path) -> None:
+        self.logger.info("Resolving external python dependencies for {file_path}", file_path)
         graph = Graph()
         resolved_path = file_path.resolve()
         source_package_id = resolved_path.parent.name

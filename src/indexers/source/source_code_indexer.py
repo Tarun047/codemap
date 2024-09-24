@@ -9,7 +9,7 @@ from pathlib import Path
 
 class SourceCodeIndexer(BaseIndexer):
     def glob_pattern(self) -> str:
-        return "**/*.cs"
+        return "**/*.py"
 
     async def index_one(self, file_path: Path) -> None:
         return super().index_one(file_path)
@@ -19,15 +19,15 @@ class SourceCodeIndexer(BaseIndexer):
             GenericLoader.from_filesystem(
                 file_path,
                 glob="**/*",
-                parser=LanguageParser(language="csharp", parser_threshold=500),
+                parser=LanguageParser(language=Language.PYTHON, parser_threshold=500),
             )
             for file_path in file_paths
         ]
 
         documents = [await loader.aload() for loader in loaders]
         code_splitter = RecursiveCharacterTextSplitter.from_language(
-            language=Language.CSHARP, chunk_size=2000, chunk_overlap=200
+            language=Language.PYTHON, chunk_size=2000, chunk_overlap=200
         )
         snippets = code_splitter.split_documents(list(chain(*documents)))
-        self.logger.info("Adding code snippets to vector db")
+        self.logger.info(f"Indexing documents: ${file_paths}")
         await self.vector_db.aadd_documents(snippets)

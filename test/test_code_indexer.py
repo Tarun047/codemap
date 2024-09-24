@@ -1,5 +1,5 @@
 import asyncio
-from src.indexers.source_code_indexer import SourceCodeIndexer
+from src.indexers.source.source_code_indexer import SourceCodeIndexer
 import chromadb
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever

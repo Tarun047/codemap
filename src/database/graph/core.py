@@ -1,13 +1,15 @@
-from .configuration import GraphDatabaseConfiguration
+from src.database.graph.configuration import DatabaseConfiguration
 from langchain_community.graphs.neo4j_graph import Neo4jGraph, GraphDocument
 from langchain_community.graphs.graph_document import Node as N4JNode, Relationship as N4JRelationship
 from langchain_core.documents.base import Document
-from .models import Graph, Node
+from src.database.graph.models import Graph, Node
 
 
 class GraphDatabase:
-    def __init__(self, configuration: GraphDatabaseConfiguration):
-        self.graph = Neo4jGraph(configuration.uri, username=configuration.username, password=configuration.password, database=configuration.database, enhanced_schema=True, refresh_schema=True, sanitize=True)
+    def __init__(self, configuration: DatabaseConfiguration):
+        self.graph = Neo4jGraph(configuration.uri, username=configuration.username, password=configuration.password,
+                                database=configuration.database, enhanced_schema=True, refresh_schema=True,
+                                sanitize=True)
 
     def _create_n4j_node(self, node: Node) -> N4JNode:
         return N4JNode(id=node.id, type=node.type, metadata=node.metadata)
@@ -39,7 +41,8 @@ class GraphDatabase:
                         n4j_node_map[relative.id] = n4j_node
                         nodes.append(n4j_node)
 
-                    relation = self._create_n4j_relationship(n4j_node_map[source_id], n4j_node_map[relative.id], relation_type)
+                    relation = self._create_n4j_relationship(n4j_node_map[source_id], n4j_node_map[relative.id],
+                                                             relation_type)
                     relationships.append(relation)
 
         document = GraphDocument(source=source, nodes=nodes, relationships=relationships)
@@ -49,3 +52,6 @@ class GraphDatabase:
     def save(self, source: str, graph: Graph):
         graph_document = self._construct_graph_document(graph, source)
         self.graph.add_graph_documents([graph_document], include_source=True)
+
+    def save_all(self, graph_docs):
+        self.graph.add_graph_documents(graph_docs, include_source=True)

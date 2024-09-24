@@ -1,14 +1,11 @@
 from abc import ABC, abstractmethod
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from logging import Logger
-from math import ceil
-from numpy import array_split
 from pathlib import Path
 import threading
 from typing import List
-from .utils import batched
-from ..logging.base import BaseLoggerMixin
+from src.indexers.utils import batched
+from src.logging.base import BaseLoggerMixin
 from langchain_chroma import Chroma
 
 
@@ -59,9 +56,17 @@ class BaseIndexer(ABC, BaseLoggerMixin):
 
         glob_pattern = self.glob_pattern()
         candidate_documents = self.repo_path.glob(glob_pattern)
-        
+
         with ThreadPoolExecutor(max_workers=self.max_threads, thread_name_prefix=threading.current_thread().name) as pool:
             pool.map(
                 lambda batch: asyncio.run(self.index_few(batch)),
                 batched(candidate_documents, self.batch_size),
             )
+
+
+
+
+
+
+
+

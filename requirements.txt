@@ -9,3 +9,6 @@ langchain-core
 langchain-text-splitters
 requirements-parser
 neo4j
+langchain-experimental
+streamlit
+watchdog

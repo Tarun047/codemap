@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 @dataclass
-class GraphDatabaseConfiguration:
+class DatabaseConfiguration:
     uri: str
     username: str
     password: str
     database: str
+    port: int
 
