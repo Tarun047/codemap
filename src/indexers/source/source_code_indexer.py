@@ -20,6 +20,7 @@ class SourceCodeIndexer(BaseIndexer):
                 file_path,
                 glob="**/*",
                 parser=LanguageParser(language=Language.PYTHON, parser_threshold=500),
+                show_progress=True,
             )
             for file_path in file_paths
         ]

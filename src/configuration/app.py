@@ -13,6 +13,8 @@ class ApplicationConfiguration:
     code_embedding_model: str
     source_code_indexer_batch_size: int
     source_code_indexer_max_threads: int
+    graph_indexer_batch_size: int
+    graph_indexer_max_threads: int
 
     @staticmethod
     def get_instance() -> "ApplicationConfiguration":
@@ -31,10 +33,11 @@ class ApplicationConfiguration:
                 database='neo4j',
                 port=0
             ),
-            nlp_model='codellama',
-            code_model='codellama',
+            nlp_model='phi3',
+            code_model='phi3',
             code_embedding_model='unclemusclez/jina-embeddings-v2-base-code',
             source_code_indexer_max_threads=16,
-            source_code_indexer_batch_size=96
+            source_code_indexer_batch_size=20,
+            graph_indexer_max_threads=16,
+            graph_indexer_batch_size=20
         )
-

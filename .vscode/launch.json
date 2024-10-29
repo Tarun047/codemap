@@ -5,34 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debug Indexer",
+            "name": "Start Codemap",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/test/test.py",
-            "console": "integratedTerminal",
+            "module": "streamlit",
             "env": {
-                "PYTHONPATH" : "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "Source Code Indexer",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/test_code_indexer.py",
+                "PYTHONPATH": "${workspaceFolder}"
+            },
             "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH" : "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "Python Debug Python Dependency Indexer",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/test_graph.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH" : "${workspaceFolder}"
-            }
+            "args": [
+                "run",
+                "${workspaceFolder}/src/main.py"
+            ]
         }
     ]
 }

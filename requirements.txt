@@ -12,3 +12,4 @@ neo4j
 langchain-experimental
 streamlit
 watchdog
+json-repair

@@ -1,3 +1,6 @@
+import asyncio
+from http.client import responses
+
 import chromadb
 import streamlit as st
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -5,18 +8,22 @@ from langchain.chains.history_aware_retriever import create_history_aware_retrie
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.memory import ConversationBufferMemory
 from langchain_chroma import Chroma
-from langchain_community.callbacks.streamlit.streamlit_callback_handler import StreamlitCallbackHandler
+from langchain_community.chains.graph_qa.cypher import GraphCypherQAChain
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableConfig
+from langchain_core.prompts import MessagesPlaceholder
 
-from src.chat.retrieval import PrintRetrievalHandler
+from src.indexers.graph.base import GraphIndexer
+
 from src.configuration.app import ApplicationConfiguration
 from src.database.graph.core import GraphDatabase
 from src.indexers.source.source_code_indexer import SourceCodeIndexer
+from langchain.globals import set_verbose
+
+set_verbose(True)
 
 st.set_page_config(page_title="Code Map")
 st.title("Code Map: Speak to your repository :)")
@@ -44,28 +51,44 @@ class ChatContext:
             configuration=app_config.graph_db
         )
         self.history = StreamlitChatMessageHistory()
-        self.doc_prompt = ChatPromptTemplate.from_messages(
+
+        contextualize_q_system_prompt = (
+            "Given a chat history and the latest user question "
+            "which might reference context in the chat history, "
+            "formulate a standalone question which can be understood "
+            "without the chat history. Do NOT answer the question, "
+            "just reformulate it if needed and otherwise return it as is."
+        )
+
+        self.doc_prompt =  ChatPromptTemplate.from_messages(
             [
-                ("placeholder", "{chat_history}"),
-                ("user", "{input}"),
-                (
-                    "user",
-                    "Given the above conversation, generate a search query to look up to get information relevant to the conversation",
-                ),
+                ("system", contextualize_q_system_prompt),
+                MessagesPlaceholder("chat_history"),
+                ("human", "{input}"),
             ]
+        )
+
+        system_prompt = (
+            "You are an assistant for question-answering tasks. "
+            "Use the following pieces of retrieved context to answer "
+            "the question. If you don't know the answer, say that you "
+            "don't know. Keep the answer concise."
+            "\n\n"
+            "{context}"
         )
 
         self.chat_prompt = ChatPromptTemplate.from_messages(
             [
-                (
-                    "system",
-                    "Answer the user's questions based on the below context:\n\n{context}",
-                ),
-                ("placeholder", "{chat_history}"),
-                ("user", "{input}"),
+                ("system", system_prompt),
+                ("human", "{input}"),
             ]
         )
+        self.retriever = self.vector_db.as_retriever()
+        self.retriever_chain = create_history_aware_retriever(self.nlp_slm, self.retriever, self.doc_prompt)
+        self.qa_chain = create_stuff_documents_chain(self.code_slm, self.chat_prompt)
+        self.rag_chain = create_retrieval_chain(self.retriever_chain, self.qa_chain)
 
+      
     @st.cache_resource(ttl="1h")
     async def index(_self, repo_path: str):
         indexers = [
@@ -74,34 +97,38 @@ class ChatContext:
                 batch_size=_self.app_config.source_code_indexer_batch_size,
                 max_threads=_self.app_config.source_code_indexer_max_threads,
                 vector_db=_self.vector_db
-            )
+            ),
+            # GraphIndexer(
+            #     repo_path=repo_path,
+            #     batch_size=_self.app_config.graph_indexer_batch_size,
+            #     max_threads=_self.app_config.graph_indexer_max_threads,
+            #     graph_db=_self.graph_db,
+            #     vector_db=_self.vector_db,
+            #     slm=_self.code_slm
+            # )
         ]
 
-        for indexer in indexers:
-            await indexer.run()
-
-    @property
-    def retriever(self):
-        return self.vector_db.as_retriever()
-
-    @property
-    def retriever_chain(self):
-        return create_history_aware_retriever(self.code_slm, self.retriever, self.doc_prompt)
+        await asyncio.gather(*[indexer.run() for indexer in indexers])
 
     @property
     def memory(self):
         return ConversationBufferMemory(memory_key="chat_history", chat_memory=self.history, return_messages=True)
 
     @property
-    def document_chain(self):
-        return create_stuff_documents_chain(self.code_slm, self.chat_prompt)
+    def graph_chain(self):
+        return GraphCypherQAChain.from_llm(graph=self.graph_db.graph, qa_llm=self.nlp_slm, validate_cypher=True,
+                                           cypher_llm=self.code_slm, allow_dangerous_requests=True, verbose=True)
 
-    @property
-    def qa_chain(self):
-        return create_retrieval_chain(self.retriever_chain, self.document_chain)
+    def get_graph_response(self, query):
+        response = ""
+        try:
+            response = self.graph_chain.invoke({"query": query})
+        except:
+            pass
+        return response
 
     def get_response(self, query):
-        return self.qa_chain.stream({
+        return self.rag_chain.stream({
             "chat_history": st.session_state.chat_history,
             "input": query
         })
@@ -145,6 +172,7 @@ class ChatContext:
                 st.markdown(user_query)
             with st.chat_message("AI"):
                 response = st.write_stream(self.stream_data(self.get_response(user_query)))
+                #st.write(self.get_graph_response(user_query))
             st.session_state.chat_history.append(AIMessage(content=response))
 
     @staticmethod
